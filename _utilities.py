@@ -41,14 +41,18 @@ def prepare_data_for_model(embryo_cells_info, embryo_samples, use_frame = True, 
     cell_features: a list of list
         the inner list is a list of cell features of one cell, ordered in [trajectory, start_time, lifespan, division_orientation_to_mother_cells, division_orientation_to_daughter_cells].
     cell_names: a list of cell names.
-        same order as cell_features. 
+        same order as cell_features.
+    cell_names_to_integers: a list of integers representing cell names.
+        same order as cell names appear in embryo_cells_info, starting from 0. This makes it easy for machine learning tasks.
     """ 
     cell_names = []
+    cell_names_to_integers = []
     cell_features = []
     assert set(embryo_cells_info.keys()) >= set(embryo_samples)
     for embryo_name in embryo_samples:
-        for cell in embryo_cells_info[embryo_name]:
+        for idx, cell in enumerate(embryo_cells_info[embryo_name]):
             cell_names.append(cell)
+            cell_names_to_integers.append(idx)
             current_cell_info =  embryo_cells_info[embryo_name][cell]
             if use_frame:
                 features = [current_cell_info['trajectory_processed'].to_numpy(),\
@@ -60,8 +64,8 @@ def prepare_data_for_model(embryo_cells_info, embryo_samples, use_frame = True, 
                     current_cell_info['division_orientation_to_mother_cell'],current_cell_info['division_orientation_of_daughter_cells']]
             # append trajectory lifespan to lifespan_frame_longest
             if current_cell_info['trajectory_processed'].shape[0]<lifespan_frame_longest:
-                # append -1000 at the end
-                padded = -1000*np.ones((lifespan_frame_longest,4)).astype(float)
+                # append -10000 at the end
+                padded = -10000*np.ones((lifespan_frame_longest,4)).astype(float)
                 padded[:features[0].shape[0],:] = features[0] 
                 features[0] = padded.copy()
             if not preserve_time_dimension: # discard frame/time dimension
@@ -74,7 +78,7 @@ def prepare_data_for_model(embryo_cells_info, embryo_samples, use_frame = True, 
                 features_flattened = features_flattened.astype(float)
                 features = features_flattened.copy()
             cell_features.append(features.copy())
-    return cell_features, cell_names
+    return cell_features, cell_names, cell_names_to_integers
 
 
 
