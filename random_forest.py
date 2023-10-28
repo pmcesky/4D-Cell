@@ -24,7 +24,7 @@ with open('./cells_info.pickle', 'rb') as f:
 with open('./embryo_cells_info.pickle', 'rb') as f:
     embryo_cells_info = pickle.load(f)
 
-embryos_for_test = ['WT-EMB07','WT-EMB14','WT-EMB21','WT-EMB28']
+embryos_for_test = ['WT-EMB05','WT-EMB12','WT-EMB19','WT-EMB26']
 embryos_for_cross_validation = [embryo_name for embryo_name in embryo_cells_info if embryo_name not in embryos_for_test]
 
 
@@ -39,7 +39,7 @@ for i in tqdm(range(6)): # 6-fold cross-validation
     X_train, y_train = shuffle(X_train, y_train, random_state=1)
     # X_val, y_val = shuffle(X_val, y_val, random_state=1)
     scores = []
-    for n_trees in range(10, 401):
+    for n_trees in range(10, 201):
         forest = RandomForestClassifier(n_estimators=n_trees, random_state=1, n_jobs=100)
         forest.fit(X_train, y_train)
         scores.append(forest.score(X_val, y_val))
