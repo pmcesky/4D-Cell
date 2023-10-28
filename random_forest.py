@@ -39,8 +39,8 @@ for i in tqdm(range(6)): # 6-fold cross-validation
     X_train, y_train = shuffle(X_train, y_train, random_state=1)
     # X_val, y_val = shuffle(X_val, y_val, random_state=1)
     scores = []
-    for n_trees in range(10, 200):
-        forest = RandomForestClassifier(n_estimators=n_trees, random_state=1, n_jobs=10)
+    for n_trees in range(10, 401):
+        forest = RandomForestClassifier(n_estimators=n_trees, random_state=1, n_jobs=100)
         forest.fit(X_train, y_train)
         scores.append(forest.score(X_val, y_val))
     rf_cv_score.append(scores.copy())
