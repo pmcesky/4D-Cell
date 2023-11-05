@@ -159,10 +159,15 @@ for i in range(6):
         val_accuracy.append(accuracy_val)
         # we can save the model after each epoch
         if epoch%save_interval == 0:
-            torch.save(model.state_dict(), f"mlp_{i}_fold_CV_{epoch}.pt")
+            torch.save(model.state_dict(), f"./mlp/mlp_{i}_fold_CV_{epoch}.pt")
     # record for this CV fold
     cv_train_loss.append(train_loss[:])
     cv_val_loss.append(val_loss[:])
     cv_val_accuracy.append(val_accuracy[:])
 
-
+with open( './mlp/cv_train_loss.json', 'w') as f:
+   json.dump(cv_train_loss, f)
+with open( './mlp/cv_val_loss.json', 'w') as f:
+   json.dump(cv_val_loss, f)
+with open( './mlp/cv_val_accuracy.json', 'w') as f:
+   json.dump(cv_val_accuracy, f)
