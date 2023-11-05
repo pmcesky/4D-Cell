@@ -81,6 +81,56 @@ def prepare_data_for_model(embryo_cells_info, embryo_samples, use_frame = True, 
     return cell_features, cell_names, cell_names_to_integers
 
 
+def train(model, train_loader, optimizer, log_interval, device, loss_fn = F.cross_entropy, log_batch = False):
+    model.train()
+    train_loss = 0
+    correct = 0
+    for batch_idx, (data, target) in enumerate(train_loader):
+        # move to device, usually device is cuda
+        data, target = data.to(device), target.to(device)
+        # partition data into trajectory and other features
+        x_traj = data[:,:200] # trajectory features
+        x_extra = data[:,200:] # extra features, like start_frame, lifespan, division orientations
+        if x_extra.numel() == 0:
+            x_extra = None
+        optimizer.zero_grad()
+        output = model(x_traj, x_extra)
+        loss = loss_fn(output, target)
+        loss.backward()
+        optimizer.step()
+        # log for train_loss of the epoch
+        train_loss += loss.item()*len(data)
+        # loggings inside each epoch for batches
+        if log_batch:
+            if batch_idx % log_interval == 0:
+                print(f'[{batch_idx * len(data)}/{len(train_loader.dataset)} \t Loss: {loss.item() :.6f}')
+    train_loss /= len(train_loader.dataset) # average loss on whole train dataset
+    print(f'Train Average Loss: {train_loss :.4f}')
+    return train_loss
+
+def test(model, test_loader, device, loss_fn = F.cross_entropy):
+    model.eval()
+    test_loss = 0
+    correct = 0
+    with torch.no_grad(): # deactivate autograd
+        for data, target in test_loader:
+            data, target = data.to(device), target.to(device)
+            x_traj = data[:,:200] # trajectory features
+            x_extra = data[:,200:] # extra features, like start_frame, lifespan, division orientations
+            if x_extra.numel() == 0:
+                x_extra = None
+            output = model(x_traj, x_extra)
+            # sum up batch loss
+            test_loss += loss_fn(output, target, reduction='sum').item()
+            # get the index of the max log-probability
+            pred = output.argmax(dim=1, keepdim=True)
+            # count the correct ones
+            correct += pred.eq(target.view_as(pred)).sum().item()
+    test_loss /= len(test_loader.dataset) # the average loss on whole test_set
+    accuracy = correct/len(test_loader.dataset) # this is the accuracy on whole test_set
+    print(f'Average loss: {test_loss :.4f}, Accuracy: {accuracy}')
+    return test_loss, accuracy
+
 
 def plot_cell_trajectory(cells_info, cell, figsize = (10,10), azim=225, save_path = None):
     fig = plt.figure(figsize = figsize)
