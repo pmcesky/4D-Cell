@@ -144,8 +144,8 @@ for i in range(6):
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr,weight_decay=weight_decay)
 
     epochs = 5000
-    log_interval = 100
-    save_interval = 100
+    log_interval = 100 # per batch
+    save_interval = 500 # per epoch
     train_loss = []
     val_loss = []
     val_accuracy = []
@@ -159,7 +159,7 @@ for i in range(6):
         val_accuracy.append(accuracy_val)
         # we can save the model after each epoch
         if epoch%save_interval == 0:
-            torch.save(model.state_dict(), f"./mlp/mlp_{i}_fold_CV_{epoch}.pt")
+            torch.save(model.state_dict(), f"./mlp/model_pt/mlp_{i}_fold_CV_{epoch}.pt")
     # record for this CV fold
     cv_train_loss.append(train_loss[:])
     cv_val_loss.append(val_loss[:])
