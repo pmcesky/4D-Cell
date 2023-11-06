@@ -137,6 +137,53 @@ def test(model, test_loader, device, loss_fn = F.cross_entropy):
     return test_loss, accuracy
 
 
+def train_mlp(model, train_loader, optimizer, device, loss_fn = F.cross_entropy):
+    model.train()
+    total_acc, total_loss = 0, 0
+    for data, target in train_loader:
+        # move to device, usually device is cuda
+        data, target = data.to(device), target.to(device)
+        # partition data into trajectory and other features
+        x_traj = data[:,:200] # trajectory features (50x4), 50 frames of (t,x,y,z)
+        x_extra = data[:,200:] # extra features, like start_frame, lifespan, division orientations
+        if x_extra.numel() == 0:
+            x_extra = None
+        optimizer.zero_grad()
+        output = model(x_traj, x_extra)
+        loss = loss_fn(output, target)
+        loss.backward()
+        optimizer.step()
+        # log for train_loss of the epoch
+        total_loss += loss.item()*len(data)
+        # log train_acc
+        pred = torch.argmax(output, axis=1)
+        total_acc += pred.eq(target.view_as(pred)).sum().item()
+    total_loss /= len(train_loader.dataset) # average loss on whole train dataset
+    total_acc /= len(train_loader.dataset)
+    return total_acc, total_loss
+
+def evaluate_mlp(model, dataloader, optimizer, device, loss_fn = F.cross_entropy):
+    model.eval()
+    total_acc, total_loss = 0, 0
+    with torch.no_grad():
+        for data, target in dataloader:
+            # move to device, usually device is cuda
+            data, target = data.to(device), target.to(device)
+            # partition data into trajectory and other features
+            x_traj = data[:,:200] # trajectory features (50x4), 50 frames of (t,x,y,z)
+            x_extra = data[:,200:] # extra features, like start_frame, lifespan, division orientations
+            if x_extra.numel() == 0:
+                x_extra = None
+            output = model(x_traj, x_extra)
+            loss = loss_fn(output, target)
+            pred = torch.argmax(output, axis=1)
+            total_acc += pred.eq(target.view_as(pred)).sum().item()
+            total_loss += loss.item()*target.size(0)
+    total_loss /= len(dataloader.dataset) # average loss on whole train dataset
+    total_acc /= len(dataloader.dataset)
+    return total_acc, total_loss
+
+
 def train_rnn(model, train_loader, optimizer, device, loss_fn = F.cross_entropy):
     model.train()
     total_acc, total_loss = 0, 0
