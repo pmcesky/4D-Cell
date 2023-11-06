@@ -87,164 +87,7 @@ if device=='cuda':
 # Batch_size
 batch_size = 128
 
-########################################## rnn use all features ###########################################################################################
-cv_train_loss = []
-cv_train_accuracy = []
-cv_val_loss = []
-cv_val_accuracy = []
-cv_test_accuracy = []
-# Cross Validation
-for i in range(6):
-    print(f'{i}-fold')
-    # train and val data
-    embryos_val = embryos_for_cross_validation[4*i:4*i+4]
-    embryos_train = [embryo_name for embryo_name in embryos_for_cross_validation if embryo_name not in embryos_val]
-    X_train, _, y_train = _utilities.prepare_data_for_model(embryo_cells_info, embryos_train, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
-    X_val, _, y_val = _utilities.prepare_data_for_model(embryo_cells_info, embryos_val, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
-    # test data
-    X_test, _, y_test = _utilities.prepare_data_for_model(embryo_cells_info, embryos_for_test, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
-
-
-    # feature normalization
-    scaler = StandardScaler()
-    scaler.fit(np.array(X_train))
-    X_train = scaler.transform(np.array(X_train))
-    # standardize X_val and X_test
-    X_val = scaler.transform(np.array(X_val))
-    X_test = scaler.transform(np.array(X_test))
-
-
-    # Dataset
-    train_dataset = torch.utils.data.TensorDataset(torch.from_numpy(np.array(X_train, dtype=np.float32)), torch.from_numpy(np.array(y_train)).type(torch.LongTensor))
-    val_dataset = torch.utils.data.TensorDataset(torch.from_numpy(np.array(X_val, dtype=np.float32)), torch.from_numpy(np.array(y_val)).type(torch.LongTensor))
-    test_dataset = torch.utils.data.TensorDataset(torch.from_numpy(np.array(X_test, dtype =np.float32)), torch.from_numpy(np.array(y_test)).type(torch.LongTensor))
-    # Dataloader 
-    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    val_dl = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-    test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-
-
-    ### Train and Validate model
-    model = RNN(output_size=len(cells_of_interest)).to(device)
-    lr = 0.001
-    weight_decay=0 # L2 regularization
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=weight_decay)
-
-    num_epochs = 4000
-    test_interval = 10
-    train_loss = []
-    train_accuracy = []
-    val_loss = []
-    val_accuracy = []
-    test_accuracy = []
-
-    start_time = time.time()
-    # Training
-    for epoch in range(num_epochs):
-        acc_train, loss_train = _utilities.train_rnn(model, train_dl, optimizer, device)
-        acc_valid, loss_valid = _utilities.evaluate_rnn(model, train_dl, optimizer, device)
-        train_loss.append(loss_train)
-        train_accuracy.append(acc_train)
-        val_loss.append(loss_valid)
-        val_accuracy.append(acc_valid)
-        print(f'Epoch: {epoch+1:04d}/{num_epochs:04d} | '
-            f'Accuracy: {acc_train:.4f} | '
-            f'Val_accuracy: {acc_valid:.4f} | '
-            f'Time elapsed: {(time.time() - start_time)/60:.2f} min')
-        
-        if (epoch+1)%test_interval == 0: # test every 50 epochs
-            # Test
-            acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
-            test_accuracy.append(acc_test)
-            print(f'Test_accuracy: {acc_test:.4f}')
-            torch.save(model.state_dict(), f"./rnn/model_pt/rnn_{i}_fold_CV_{epoch}.pt") 
-    # Test
-    acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
-    # test_accuracy.append(acc_test)
-    print(f'Final Test_accuracy: {acc_test:.4f}')
-    # record for this CV fold
-    cv_train_loss.append(train_loss[:])
-    cv_val_loss.append(val_loss[:])
-    cv_train_accuracy.append(train_accuracy[:])
-    cv_val_accuracy.append(val_accuracy[:])
-    cv_test_accuracy.append(test_accuracy[:])
-
-with open( './rnn/cv_train_loss.json', 'w') as f:
-   json.dump(cv_train_loss, f)
-with open( './rnn/cv_val_loss.json', 'w') as f:
-   json.dump(cv_val_loss, f)
-with open( './rnn/cv_train_accuracy.json', 'w') as f:
-   json.dump(cv_train_accuracy, f)
-with open( './rnn/cv_val_accuracy.json', 'w') as f:
-   json.dump(cv_val_accuracy, f)
-with open( './rnn/cv_test_accuracy.json', 'w') as f:
-   json.dump(cv_test_accuracy, f)
-
-################################ Train on all cross_validation dataset and test on test set
-rnn_train_loss = []
-rnn_train_accuracy = []
-rnn_test_accuracy = []
-# train and test data
-X_train, _, y_train = _utilities.prepare_data_for_model(embryo_cells_info, embryos_for_cross_validation, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
-# test data
-X_test, _, y_test = _utilities.prepare_data_for_model(embryo_cells_info, embryos_for_test, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
-
-
-# feature normalization
-scaler = StandardScaler()
-scaler.fit(np.array(X_train))
-X_train = scaler.transform(np.array(X_train))
-# standardize X_test
-X_test = scaler.transform(np.array(X_test))
-
-
-# Dataset
-train_dataset = torch.utils.data.TensorDataset(torch.from_numpy(np.array(X_train, dtype=np.float32)), torch.from_numpy(np.array(y_train)).type(torch.LongTensor))
-test_dataset = torch.utils.data.TensorDataset(torch.from_numpy(np.array(X_test, dtype =np.float32)), torch.from_numpy(np.array(y_test)).type(torch.LongTensor))
-# Dataloader 
-train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-
-
-### Train and Test model
-model = RNN(output_size=len(cells_of_interest)).to(device)
-lr = 0.001
-weight_decay=0 # L2 regularization
-optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=weight_decay)
-
-num_epochs = 4000
-test_interval = 10
-
-start_time = time.time()
-# Training
-for epoch in range(num_epochs):
-    acc_train, loss_train = _utilities.train_rnn(model, train_dl, optimizer, device)
-    rnn_train_loss.append(loss_train)
-    rnn_train_accuracy.append(acc_train)
-    print(f'Epoch: {epoch+1:04d}/{num_epochs:04d} | '
-        f'Accuracy: {acc_train:.4f} | '
-        f'Time elapsed: {(time.time() - start_time)/60:.2f} min')
-    
-    if (epoch+1)%test_interval == 0: # test every 50 epochs
-        # Test
-        acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
-        rnn_test_accuracy.append(acc_test)
-        print(f'Test_accuracy: {acc_test:.4f}')
-        torch.save(model.state_dict(), f"./rnn/model_pt/rnn_{epoch}.pt") 
-# Test
-acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
-# test_accuracy.append(acc_test)
-print(f'Final Test_accuracy: {acc_test:.4f}')
-
-with open( './rnn/rnn_train_loss.json', 'w') as f:
-   json.dump(rnn_train_loss, f)
-with open( './rnn/rnn_train_accuracy.json', 'w') as f:
-   json.dump(rnn_train_accuracy, f)
-with open( './rnn/rnn_test_accuracy.json', 'w') as f:
-   json.dump(rnn_test_accuracy, f)
-
-
-# ########################################## rnn use only trajectory ###########################################################################################
+# ########################################## rnn use all features ###########################################################################################
 # cv_train_loss = []
 # cv_train_accuracy = []
 # cv_val_loss = []
@@ -269,11 +112,7 @@ with open( './rnn/rnn_test_accuracy.json', 'w') as f:
 #     # standardize X_val and X_test
 #     X_val = scaler.transform(np.array(X_val))
 #     X_test = scaler.transform(np.array(X_test))
-    
-#     # Trajectory only features
-#     X_train = X_train[:,:150]
-#     X_val = X_val[:,:150]
-#     X_test = X_test[:,:150]
+
 
 #     # Dataset
 #     train_dataset = torch.utils.data.TensorDataset(torch.from_numpy(np.array(X_train, dtype=np.float32)), torch.from_numpy(np.array(y_train)).type(torch.LongTensor))
@@ -318,7 +157,7 @@ with open( './rnn/rnn_test_accuracy.json', 'w') as f:
 #             acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
 #             test_accuracy.append(acc_test)
 #             print(f'Test_accuracy: {acc_test:.4f}')
-#             torch.save(model.state_dict(), f"./rnn/model_pt/rnn_trajectory_{i}_fold_CV_{epoch}.pt") 
+#             torch.save(model.state_dict(), f"./rnn/model_pt/rnn_{i}_fold_CV_{epoch}.pt") 
 #     # Test
 #     acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
 #     # test_accuracy.append(acc_test)
@@ -330,18 +169,18 @@ with open( './rnn/rnn_test_accuracy.json', 'w') as f:
 #     cv_val_accuracy.append(val_accuracy[:])
 #     cv_test_accuracy.append(test_accuracy[:])
 
-# with open( './rnn/cv_train_loss_trajectory.json', 'w') as f:
+# with open( './rnn/cv_train_loss.json', 'w') as f:
 #    json.dump(cv_train_loss, f)
-# with open( './rnn/cv_val_loss_trajectory.json', 'w') as f:
+# with open( './rnn/cv_val_loss.json', 'w') as f:
 #    json.dump(cv_val_loss, f)
-# with open( './rnn/cv_train_accuracy_trajectory.json', 'w') as f:
+# with open( './rnn/cv_train_accuracy.json', 'w') as f:
 #    json.dump(cv_train_accuracy, f)
-# with open( './rnn/cv_val_accuracy_trajectory.json', 'w') as f:
+# with open( './rnn/cv_val_accuracy.json', 'w') as f:
 #    json.dump(cv_val_accuracy, f)
-# with open( './rnn/cv_test_accuracy_trajectory.json', 'w') as f:
+# with open( './rnn/cv_test_accuracy.json', 'w') as f:
 #    json.dump(cv_test_accuracy, f)
 
-# ################################ Train on all cross_validation dataset and test on test set with trajectory only features
+# ################################ Train on all cross_validation dataset and test on test set
 # rnn_train_loss = []
 # rnn_train_accuracy = []
 # rnn_test_accuracy = []
@@ -357,10 +196,6 @@ with open( './rnn/rnn_test_accuracy.json', 'w') as f:
 # X_train = scaler.transform(np.array(X_train))
 # # standardize X_test
 # X_test = scaler.transform(np.array(X_test))
-
-# # Trajectory only features
-# X_train = X_train[:,:150]
-# X_test = X_test[:,:150]
 
 
 # # Dataset
@@ -395,18 +230,183 @@ with open( './rnn/rnn_test_accuracy.json', 'w') as f:
 #         acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
 #         rnn_test_accuracy.append(acc_test)
 #         print(f'Test_accuracy: {acc_test:.4f}')
-#         torch.save(model.state_dict(), f"./rnn/model_pt/rnn_trajectory_{epoch}.pt") 
+#         torch.save(model.state_dict(), f"./rnn/model_pt/rnn_{epoch}.pt") 
 # # Test
 # acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
 # # test_accuracy.append(acc_test)
 # print(f'Final Test_accuracy: {acc_test:.4f}')
 
-# with open( './rnn/rnn_trajectory_train_loss.json', 'w') as f:
+# with open( './rnn/rnn_train_loss.json', 'w') as f:
 #    json.dump(rnn_train_loss, f)
-# with open( './rnn/rnn_trajectory_train_accuracy.json', 'w') as f:
+# with open( './rnn/rnn_train_accuracy.json', 'w') as f:
 #    json.dump(rnn_train_accuracy, f)
-# with open( './rnn/rnn_trajectory_test_accuracy.json', 'w') as f:
+# with open( './rnn/rnn_test_accuracy.json', 'w') as f:
 #    json.dump(rnn_test_accuracy, f)
+
+
+########################################## rnn use only trajectory ###########################################################################################
+cv_train_loss = []
+cv_train_accuracy = []
+cv_val_loss = []
+cv_val_accuracy = []
+cv_test_accuracy = []
+# Cross Validation
+for i in range(6):
+    print(f'{i}-fold')
+    # train and val data
+    embryos_val = embryos_for_cross_validation[4*i:4*i+4]
+    embryos_train = [embryo_name for embryo_name in embryos_for_cross_validation if embryo_name not in embryos_val]
+    X_train, _, y_train = _utilities.prepare_data_for_model(embryo_cells_info, embryos_train, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
+    X_val, _, y_val = _utilities.prepare_data_for_model(embryo_cells_info, embryos_val, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
+    # test data
+    X_test, _, y_test = _utilities.prepare_data_for_model(embryo_cells_info, embryos_for_test, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
+
+
+    # feature normalization
+    scaler = StandardScaler()
+    scaler.fit(np.array(X_train))
+    X_train = scaler.transform(np.array(X_train))
+    # standardize X_val and X_test
+    X_val = scaler.transform(np.array(X_val))
+    X_test = scaler.transform(np.array(X_test))
+    
+    # Trajectory only features
+    X_train = X_train[:,:150]
+    X_val = X_val[:,:150]
+    X_test = X_test[:,:150]
+
+    # Dataset
+    train_dataset = torch.utils.data.TensorDataset(torch.from_numpy(np.array(X_train, dtype=np.float32)), torch.from_numpy(np.array(y_train)).type(torch.LongTensor))
+    val_dataset = torch.utils.data.TensorDataset(torch.from_numpy(np.array(X_val, dtype=np.float32)), torch.from_numpy(np.array(y_val)).type(torch.LongTensor))
+    test_dataset = torch.utils.data.TensorDataset(torch.from_numpy(np.array(X_test, dtype =np.float32)), torch.from_numpy(np.array(y_test)).type(torch.LongTensor))
+    # Dataloader 
+    train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_dl = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+    test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+
+    ### Train and Validate model
+    model = RNN(output_size=len(cells_of_interest)).to(device)
+    lr = 0.001
+    weight_decay=0 # L2 regularization
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=weight_decay)
+
+    num_epochs = 4000
+    test_interval = 10
+    train_loss = []
+    train_accuracy = []
+    val_loss = []
+    val_accuracy = []
+    test_accuracy = []
+
+    start_time = time.time()
+    # Training
+    for epoch in range(num_epochs):
+        acc_train, loss_train = _utilities.train_rnn(model, train_dl, optimizer, device)
+        acc_valid, loss_valid = _utilities.evaluate_rnn(model, train_dl, optimizer, device)
+        train_loss.append(loss_train)
+        train_accuracy.append(acc_train)
+        val_loss.append(loss_valid)
+        val_accuracy.append(acc_valid)
+        print(f'Epoch: {epoch+1:04d}/{num_epochs:04d} | '
+            f'Accuracy: {acc_train:.4f} | '
+            f'Val_accuracy: {acc_valid:.4f} | '
+            f'Time elapsed: {(time.time() - start_time)/60:.2f} min')
+        
+        if (epoch+1)%test_interval == 0: # test every 50 epochs
+            # Test
+            acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
+            test_accuracy.append(acc_test)
+            print(f'Test_accuracy: {acc_test:.4f}')
+            torch.save(model.state_dict(), f"./rnn/model_pt/rnn_trajectory_{i}_fold_CV_{epoch}.pt") 
+    # Test
+    acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
+    # test_accuracy.append(acc_test)
+    print(f'Final Test_accuracy: {acc_test:.4f}')
+    # record for this CV fold
+    cv_train_loss.append(train_loss[:])
+    cv_val_loss.append(val_loss[:])
+    cv_train_accuracy.append(train_accuracy[:])
+    cv_val_accuracy.append(val_accuracy[:])
+    cv_test_accuracy.append(test_accuracy[:])
+
+with open( './rnn/cv_train_loss_trajectory.json', 'w') as f:
+   json.dump(cv_train_loss, f)
+with open( './rnn/cv_val_loss_trajectory.json', 'w') as f:
+   json.dump(cv_val_loss, f)
+with open( './rnn/cv_train_accuracy_trajectory.json', 'w') as f:
+   json.dump(cv_train_accuracy, f)
+with open( './rnn/cv_val_accuracy_trajectory.json', 'w') as f:
+   json.dump(cv_val_accuracy, f)
+with open( './rnn/cv_test_accuracy_trajectory.json', 'w') as f:
+   json.dump(cv_test_accuracy, f)
+
+################################ Train on all cross_validation dataset and test on test set with trajectory only features
+rnn_train_loss = []
+rnn_train_accuracy = []
+rnn_test_accuracy = []
+# train and test data
+X_train, _, y_train = _utilities.prepare_data_for_model(embryo_cells_info, embryos_for_cross_validation, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
+# test data
+X_test, _, y_test = _utilities.prepare_data_for_model(embryo_cells_info, embryos_for_test, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
+
+
+# feature normalization
+scaler = StandardScaler()
+scaler.fit(np.array(X_train))
+X_train = scaler.transform(np.array(X_train))
+# standardize X_test
+X_test = scaler.transform(np.array(X_test))
+
+# Trajectory only features
+X_train = X_train[:,:150]
+X_test = X_test[:,:150]
+
+
+# Dataset
+train_dataset = torch.utils.data.TensorDataset(torch.from_numpy(np.array(X_train, dtype=np.float32)), torch.from_numpy(np.array(y_train)).type(torch.LongTensor))
+test_dataset = torch.utils.data.TensorDataset(torch.from_numpy(np.array(X_test, dtype =np.float32)), torch.from_numpy(np.array(y_test)).type(torch.LongTensor))
+# Dataloader 
+train_dl = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_dl = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+
+### Train and Test model
+model = RNN(output_size=len(cells_of_interest)).to(device)
+lr = 0.001
+weight_decay=0 # L2 regularization
+optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=weight_decay)
+
+num_epochs = 4000
+test_interval = 10
+
+start_time = time.time()
+# Training
+for epoch in range(num_epochs):
+    acc_train, loss_train = _utilities.train_rnn(model, train_dl, optimizer, device)
+    rnn_train_loss.append(loss_train)
+    rnn_train_accuracy.append(acc_train)
+    print(f'Epoch: {epoch+1:04d}/{num_epochs:04d} | '
+        f'Accuracy: {acc_train:.4f} | '
+        f'Time elapsed: {(time.time() - start_time)/60:.2f} min')
+    
+    if (epoch+1)%test_interval == 0: # test every 50 epochs
+        # Test
+        acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
+        rnn_test_accuracy.append(acc_test)
+        print(f'Test_accuracy: {acc_test:.4f}')
+        torch.save(model.state_dict(), f"./rnn/model_pt/rnn_trajectory_{epoch}.pt") 
+# Test
+acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
+# test_accuracy.append(acc_test)
+print(f'Final Test_accuracy: {acc_test:.4f}')
+
+with open( './rnn/rnn_trajectory_train_loss.json', 'w') as f:
+   json.dump(rnn_train_loss, f)
+with open( './rnn/rnn_trajectory_train_accuracy.json', 'w') as f:
+   json.dump(rnn_train_accuracy, f)
+with open( './rnn/rnn_trajectory_test_accuracy.json', 'w') as f:
+   json.dump(rnn_test_accuracy, f)
 
 
 # ########################################## rnn use only trajectory + start_frame ###########################################################################################
