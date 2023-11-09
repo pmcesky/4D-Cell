@@ -184,7 +184,7 @@ def evaluate_mlp(model, dataloader, optimizer, device, loss_fn = F.cross_entropy
     return total_acc, total_loss
 
 
-def train_rnn(model, train_loader, optimizer, device, loss_fn = F.cross_entropy):
+def train_rnn(model, train_loader, optimizer, device, loss_fn = F.cross_entropy, gradient_clip=False):
     model.train()
     total_acc, total_loss = 0, 0
     for data, target in train_loader:
@@ -199,6 +199,8 @@ def train_rnn(model, train_loader, optimizer, device, loss_fn = F.cross_entropy)
         output = model(x_traj, x_extra)
         loss = loss_fn(output, target)
         loss.backward()
+        if gradient_clip:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 0.01)
         optimizer.step()
         # log for train_loss of the epoch
         total_loss += loss.item()*len(data)

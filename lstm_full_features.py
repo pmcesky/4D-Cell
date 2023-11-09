@@ -95,7 +95,7 @@ test_interval = 10 # compute test accuracy on test_dl every some epochs
 save_interval = 100 # save model every some epochs
 lr = 0.001 
 gamma = 0.999 # lr scheduler exp decay gamma, lr decay by gamma every epoch 
-weight_decay=0.1 # L2 regularization
+weight_decay=0.15 # L2 regularization
 ##############################################################################################################
 
 
@@ -118,13 +118,13 @@ for i in range(6):
     X_test, _, y_test = _utilities.prepare_data_for_model(embryo_cells_info, embryos_for_test, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
 
 
-    # feature normalization
-    scaler = StandardScaler()
-    scaler.fit(np.array(X_train))
-    X_train = scaler.transform(np.array(X_train))
-    # standardize X_val and X_test
-    X_val = scaler.transform(np.array(X_val))
-    X_test = scaler.transform(np.array(X_test))
+    # # feature normalization
+    # scaler = StandardScaler()
+    # scaler.fit(np.array(X_train))
+    # X_train = scaler.transform(np.array(X_train))
+    # # standardize X_val and X_test
+    # X_val = scaler.transform(np.array(X_val))
+    # X_test = scaler.transform(np.array(X_test))
 
 
     # Dataset
@@ -152,7 +152,7 @@ for i in range(6):
     start_time = time.time()
     # Training
     for epoch in range(1,num_epochs+1):
-        acc_train, loss_train = _utilities.train_rnn(model, train_dl, optimizer, device)
+        acc_train, loss_train = _utilities.train_rnn(model, train_dl, optimizer, device, gradient_clip=True)
         acc_valid, loss_valid = _utilities.evaluate_rnn(model, val_dl, optimizer, device)
         scheduler.step() # adjust lr
         train_loss.append(loss_train)
@@ -206,12 +206,12 @@ X_train, _, y_train = _utilities.prepare_data_for_model(embryo_cells_info, embry
 X_test, _, y_test = _utilities.prepare_data_for_model(embryo_cells_info, embryos_for_test, use_frame = True, lifespan_frame_longest = 50, preserve_time_dimension = False, flatten = True)
 
 
-# feature normalization
-scaler = StandardScaler()
-scaler.fit(np.array(X_train))
-X_train = scaler.transform(np.array(X_train))
-# standardize X_test
-X_test = scaler.transform(np.array(X_test))
+# # feature normalization
+# scaler = StandardScaler()
+# scaler.fit(np.array(X_train))
+# X_train = scaler.transform(np.array(X_train))
+# # standardize X_test
+# X_test = scaler.transform(np.array(X_test))
 
 
 # Dataset
@@ -231,7 +231,7 @@ scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
 start_time = time.time()
 # Training
 for epoch in range(1,num_epochs+1):
-    acc_train, loss_train = _utilities.train_rnn(model, train_dl, optimizer, device)
+    acc_train, loss_train = _utilities.train_rnn(model, train_dl, optimizer, device, gradient_clip=True)
     scheduler.step() # adjust lr
     lstm_train_loss.append(loss_train)
     lstm_train_accuracy.append(acc_train)
