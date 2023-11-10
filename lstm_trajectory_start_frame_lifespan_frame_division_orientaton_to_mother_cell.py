@@ -95,7 +95,7 @@ test_interval = 10 # compute test accuracy on test_dl every some epochs
 save_interval = 100 # save model every some epochs
 lr = 0.001 
 gamma = 0.999 # lr scheduler exp decay gamma, lr decay by gamma every epoch 
-weight_decay=0.15 # L2 regularization
+weight_decay=0.1 # L2 regularization
 ##############################################################################################################
 
 
@@ -173,8 +173,8 @@ for i in range(6):
             acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
             test_accuracy.append(acc_test)
             print(f'Test_accuracy: {acc_test:.4f}')
-        if epoch%save_interval == 0: # save test model
-            torch.save(model.state_dict(), f"./lstm/model_pt/lstm_traj_sf_lf_dm_{i}_fold_CV_{epoch}.pt")
+        # if epoch%save_interval == 0: # save test model
+            # torch.save(model.state_dict(), f"./lstm/model_pt/lstm_traj_sf_lf_dm_{i}_fold_CV_{epoch}.pt")
  
     # Final Test Accuracy
     acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
@@ -187,15 +187,15 @@ for i in range(6):
     cv_val_accuracy.append(val_accuracy[:])
     cv_test_accuracy.append(test_accuracy[:])
 
-with open( './lstm/lstm_traj_sf_lf_dm_cv_train_loss.json', 'w') as f:
+with open( './lstm/lstm_traj_sf_lf_dm_cv_train_loss_wd01.json', 'w') as f:
    json.dump(cv_train_loss, f)
-with open( './lstm/lstm_traj_sf_lf_dm_cv_val_loss.json', 'w') as f:
+with open( './lstm/lstm_traj_sf_lf_dm_cv_val_loss_wd01.json', 'w') as f:
    json.dump(cv_val_loss, f)
-with open( './lstm/lstm_traj_sf_lf_dm_cv_train_accuracy.json', 'w') as f:
+with open( './lstm/lstm_traj_sf_lf_dm_cv_train_accuracy_wd01.json', 'w') as f:
    json.dump(cv_train_accuracy, f)
-with open( './lstm/lstm_traj_sf_lf_dm_cv_val_accuracy.json', 'w') as f:
+with open( './lstm/lstm_traj_sf_lf_dm_cv_val_accuracy_wd01.json', 'w') as f:
    json.dump(cv_val_accuracy, f)
-with open( './lstm/lstm_traj_sf_lf_dm_cv_test_accuracy.json', 'w') as f:
+with open( './lstm/lstm_traj_sf_lf_dm_cv_test_accuracy_wd01.json', 'w') as f:
    json.dump(cv_test_accuracy, f)
 
 
@@ -259,9 +259,9 @@ acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
 # test_accuracy.append(acc_test)
 print(f'Final Test_accuracy: {acc_test:.4f}')
 
-with open( './lstm/lstm_traj_sf_lf_dm_test_train_loss.json', 'w') as f:
+with open( './lstm/lstm_traj_sf_lf_dm_test_train_loss_wd01.json', 'w') as f:
    json.dump(lstm_train_loss, f)
-with open( './lstm/lstm_traj_sf_lf_dm_test_train_accuracy.json', 'w') as f:
+with open( './lstm/lstm_traj_sf_lf_dm_test_train_accuracy_wd01.json', 'w') as f:
    json.dump(lstm_train_accuracy, f)
-with open( './lstm/lstm_traj_sf_lf_dm_test_test_accuracy.json', 'w') as f:
+with open( './lstm/lstm_traj_sf_lf_dm_test_test_accuracy_wd01.json', 'w') as f:
    json.dump(lstm_test_accuracy, f)
