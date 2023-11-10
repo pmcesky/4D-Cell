@@ -95,7 +95,7 @@ test_interval = 10 # compute test accuracy on test_dl every some epochs
 save_interval = 100 # save model every some epochs
 lr = 0.001 
 gamma = 0.999 # lr scheduler exp decay gamma, lr decay by gamma every epoch 
-weight_decay=0.1 # L2 regularization
+weight_decay=0.2 # L2 regularization
 ##############################################################################################################
 
 
@@ -183,15 +183,15 @@ for i in range(6):
     cv_val_accuracy.append(val_accuracy[:])
     cv_test_accuracy.append(test_accuracy[:])
 
-with open( './lstm/lstm_full_cv_train_loss_wd01.json', 'w') as f:
+with open( './lstm/lstm_full_cv_train_loss_wd02.json', 'w') as f:
    json.dump(cv_train_loss, f)
-with open( './lstm/lstm_full_cv_val_loss_wd01.json', 'w') as f:
+with open( './lstm/lstm_full_cv_val_loss_wd02.json', 'w') as f:
    json.dump(cv_val_loss, f)
-with open( './lstm/lstm_full_cv_train_accuracy_wd01.json', 'w') as f:
+with open( './lstm/lstm_full_cv_train_accuracy_wd02.json', 'w') as f:
    json.dump(cv_train_accuracy, f)
-with open( './lstm/lstm_full_cv_val_accuracy_wd01.json', 'w') as f:
+with open( './lstm/lstm_full_cv_val_accuracy_wd02.json', 'w') as f:
    json.dump(cv_val_accuracy, f)
-with open( './lstm/lstm_full_cv_test_accuracy_wd01.json', 'w') as f:
+with open( './lstm/lstm_full_cv_test_accuracy_wd02.json', 'w') as f:
    json.dump(cv_test_accuracy, f)
 
 
@@ -245,15 +245,15 @@ for epoch in range(1,num_epochs+1):
         lstm_test_accuracy.append(acc_test)
         print(f'Test_accuracy: {acc_test:.4f}')
     if epoch%save_interval == 0: # save model test
-        torch.save(model.state_dict(), f"./lstm/model_pt/lstm_full_test_{epoch}_wd01.pt") 
+        torch.save(model.state_dict(), f"./lstm/model_pt/lstm_full_test_{epoch}_wd02.pt") 
 # Test
 acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
 # test_accuracy.append(acc_test)
 print(f'Final Test_accuracy: {acc_test:.4f}')
 
-with open( './lstm/lstm_full_test_train_loss_wd01.json', 'w') as f:
+with open( './lstm/lstm_full_test_train_loss_wd02.json', 'w') as f:
    json.dump(lstm_train_loss, f)
-with open( './lstm/lstm_full_test_train_accuracy_wd01.json', 'w') as f:
+with open( './lstm/lstm_full_test_train_accuracy_wd02.json', 'w') as f:
    json.dump(lstm_train_accuracy, f)
-with open( './lstm/lstm_full_test_test_accuracy_wd01.json', 'w') as f:
+with open( './lstm/lstm_full_test_test_accuracy_wd02.json', 'w') as f:
    json.dump(lstm_test_accuracy, f)
