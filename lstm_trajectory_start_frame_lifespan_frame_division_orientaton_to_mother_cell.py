@@ -174,7 +174,7 @@ for i in range(6):
             test_accuracy.append(acc_test)
             print(f'Test_accuracy: {acc_test:.4f}')
         # if epoch%save_interval == 0: # save test model
-            # torch.save(model.state_dict(), f"./lstm/model_pt/lstm_traj_sf_lf_dm_{i}_fold_CV_{epoch}.pt")
+            # torch.save(model.state_dict(), f"./lstm/model_pt/lstm_traj_sf_lf_dm_{i}_fold_CV_{epoch}_wd01.pt")
  
     # Final Test Accuracy
     acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
@@ -253,7 +253,7 @@ for epoch in range(1,num_epochs+1):
         lstm_test_accuracy.append(acc_test)
         print(f'Test_accuracy: {acc_test:.4f}')
     if epoch%save_interval == 0: # save model test
-        torch.save(model.state_dict(), f"./lstm/model_pt/lstm_traj_sf_lf_dm_test_{epoch}.pt") 
+        torch.save(model.state_dict(), f"./lstm/model_pt/lstm_traj_sf_lf_dm_test_{epoch}_wd01.pt") 
 # Test
 acc_test, _ = _utilities.evaluate_rnn(model, test_dl, optimizer, device)
 # test_accuracy.append(acc_test)
