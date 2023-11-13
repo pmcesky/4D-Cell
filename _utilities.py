@@ -86,32 +86,36 @@ def prepare_data_for_model(embryo_cells_info, embryo_samples, use_frame = True, 
     return cell_features, cell_names, cell_names_to_integers
 
 
-def train(model, train_loader, optimizer, log_interval, device, loss_fn = F.cross_entropy, log_batch = False):
+def train(model, train_loader, optimizer, device, trajectory_feature_size = 150, loss_fn = F.cross_entropy, l2_lambda_output_layer = None, clip_grad_norm=None):
     model.train()
-    train_loss = 0
-    correct = 0
-    for batch_idx, (data, target) in enumerate(train_loader):
+    total_acc, total_loss = 0, 0
+    for data, target in train_loader:
         # move to device, usually device is cuda
         data, target = data.to(device), target.to(device)
         # partition data into trajectory and other features
-        x_traj = data[:,:200] # trajectory features
-        x_extra = data[:,200:] # extra features, like start_frame, lifespan, division orientations
+        x_traj = data[:,:trajectory_feature_size] # trajectory features (50x3), 50 frames of (x,y,z)
+        x_extra = data[:,trajectory_feature_size:] # extra features, like start_frame, lifespan, division orientations
         if x_extra.numel() == 0:
             x_extra = None
         optimizer.zero_grad()
         output = model(x_traj, x_extra)
         loss = loss_fn(output, target)
+        if l2_lambda_output_layer: # l2 regularization on the final output layer
+            l2_reg = sum(p.pow(2).sum() for p in model.fc_out.parameters())
+            loss = loss + l2_lambda_output_layer*l2_reg
         loss.backward()
+        if clip_grad_norm:
+            torch.nn.utils.clip_grad_norm_(model.parameters(), clip_grad_norm)
         optimizer.step()
         # log for train_loss of the epoch
-        train_loss += loss.item()*len(data)
-        # loggings inside each epoch for batches
-        if log_batch:
-            if batch_idx % log_interval == 0:
-                print(f'[{batch_idx * len(data)}/{len(train_loader.dataset)} \t Loss: {loss.item() :.6f}')
-    train_loss /= len(train_loader.dataset) # average loss on whole train dataset
-    print(f'Train Average Loss: {train_loss :.4f}')
-    return train_loss
+        total_loss += loss.item()*len(data)
+        # log train_acc
+        pred = torch.argmax(output, axis=1)
+        total_acc += pred.eq(target.view_as(pred)).sum().item()
+    total_loss /= len(train_loader.dataset) # average loss on whole train dataset
+    total_acc /= len(train_loader.dataset)
+    return total_acc, total_loss
+
 
 def test(model, test_loader, device, loss_fn = F.cross_entropy):
     model.eval()
