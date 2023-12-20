@@ -15,13 +15,13 @@ from sklearn.utils import shuffle
 import _utilities
 
 
-with open( './cells_of_interest.json', 'r') as f:
+with open( '../cells_of_interest.json', 'r') as f:
    cells_of_interest = json.load(f)
 
-with open('./cells_info.pickle', 'rb') as f:
+with open('../cells_info.pickle', 'rb') as f:
     cells_info = pickle.load(f)
 
-with open('./embryo_cells_info.pickle', 'rb') as f:
+with open('../embryo_cells_info.pickle', 'rb') as f:
     embryo_cells_info = pickle.load(f)
 
 embryos_for_test = ['WT-EMB05','WT-EMB12','WT-EMB19','WT-EMB26']
@@ -46,7 +46,7 @@ for i in tqdm(range(6)): # 6-fold cross-validation
         scores.append(forest.score(X_val, y_val))
     rf_cv_score.append(scores.copy())
 
-with open( './random_forest/rf_cv_score_all_features.json', 'w') as f:
+with open( './cross_validation/rf_cv_score_all_features.json', 'w') as f:
    json.dump(rf_cv_score, f)
 
 
@@ -73,7 +73,7 @@ for i in tqdm(range(6)): # 6-fold cross-validation
     rf_cv_score.append(scores.copy())
 
 
-with open( './random_forest/rf_cv_score_trajectory.json', 'w') as f:
+with open( './cross_validation/rf_cv_score_trajectory.json', 'w') as f:
     json.dump(rf_cv_score, f)
 
 
@@ -100,7 +100,7 @@ for i in tqdm(range(6)): # 6-fold cross-validation
     rf_cv_score.append(scores.copy())
 
 
-with open( './random_forest/rf_cv_score_trajectory_and_start_frame.json', 'w') as f:
+with open( './cross_validation/rf_cv_score_trajectory_and_start_frame.json', 'w') as f:
     json.dump(rf_cv_score, f)
 
 
@@ -126,7 +126,7 @@ for i in tqdm(range(6)): # 6-fold cross-validation
     rf_cv_score.append(scores.copy())
 
 
-with open( './random_forest/rf_cv_score_trajectory_and_start_frame_and_lifespan.json', 'w') as f:
+with open( './cross_validation/rf_cv_score_trajectory_and_start_frame_and_lifespan.json', 'w') as f:
     json.dump(rf_cv_score, f)
 
 
@@ -152,5 +152,5 @@ for i in tqdm(range(6)): # 6-fold cross-validation
     rf_cv_score.append(scores.copy())
 
 
-with open( './random_forest/rf_cv_score_trajectory_and_start_frame_and_lifespan_and_division_orientation_to_mother_cell.json', 'w') as f:
+with open( './cross_validation/rf_cv_score_trajectory_and_start_frame_and_lifespan_and_division_orientation_to_mother_cell.json', 'w') as f:
     json.dump(rf_cv_score, f)

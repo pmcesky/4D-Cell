@@ -18,13 +18,13 @@ import torch.nn.functional as F
 from sklearn.preprocessing import StandardScaler
 
 
-with open( './cells_of_interest.json', 'r') as f:
+with open( '../cells_of_interest.json', 'r') as f:
    cells_of_interest = json.load(f)
 
-with open('./cells_info.pickle', 'rb') as f:
+with open('../cells_info.pickle', 'rb') as f:
     cells_info = pickle.load(f)
 
-with open('./embryo_cells_info.pickle', 'rb') as f:
+with open('../embryo_cells_info.pickle', 'rb') as f:
     embryo_cells_info = pickle.load(f)
 
 embryos_for_test = ['WT-EMB05','WT-EMB12','WT-EMB19','WT-EMB26']
@@ -162,11 +162,11 @@ batch_size = 128
 #     cv_val_loss.append(val_loss[:])
 #     cv_val_accuracy.append(val_accuracy[:])
 
-# with open( './mlp/cv_train_loss.json', 'w') as f:
+# with open( './cross_validation/cv_train_loss.json', 'w') as f:
 #    json.dump(cv_train_loss, f)
-# with open( './mlp/cv_val_loss.json', 'w') as f:
+# with open( './cross_validation/cv_val_loss.json', 'w') as f:
 #    json.dump(cv_val_loss, f)
-# with open( './mlp/cv_val_accuracy.json', 'w') as f:
+# with open( './cross_validation/cv_val_accuracy.json', 'w') as f:
 #    json.dump(cv_val_accuracy, f)
 
 
@@ -232,17 +232,17 @@ for i in range(6):
         val_accuracy.append(accuracy_val)
         # we can save the model after each epoch
         if epoch%save_interval == 0:
-            torch.save(model.state_dict(), f"./mlp/model_pt/mlp_trajectory_{i}_fold_CV_{epoch}.pt")
+            torch.save(model.state_dict(), f"./model_pt/mlp_trajectory_{i}_fold_CV_{epoch}.pt")
     # record for this CV fold
     cv_train_loss.append(train_loss[:])
     cv_val_loss.append(val_loss[:])
     cv_val_accuracy.append(val_accuracy[:])
 
-with open( './mlp/cv_train_loss_trajectory.json', 'w') as f:
+with open( './cross_validation/cv_train_loss_trajectory.json', 'w') as f:
    json.dump(cv_train_loss, f)
-with open( './mlp/cv_val_loss_trajectory.json', 'w') as f:
+with open( './cross_validation/cv_val_loss_trajectory.json', 'w') as f:
    json.dump(cv_val_loss, f)
-with open( './mlp/cv_val_accuracy_trajectory.json', 'w') as f:
+with open( './cross_validation/cv_val_accuracy_trajectory.json', 'w') as f:
    json.dump(cv_val_accuracy, f)
 
 ########################################## MLP use only trajectory + start_frame ###########################################################################################
@@ -306,17 +306,17 @@ for i in range(6):
         val_accuracy.append(accuracy_val)
         # we can save the model after each epoch
         if epoch%save_interval == 0:
-            torch.save(model.state_dict(), f"./mlp/model_pt/mlp_trajectory_start_frame_{i}_fold_CV_{epoch}.pt")
+            torch.save(model.state_dict(), f"./model_pt/mlp_trajectory_start_frame_{i}_fold_CV_{epoch}.pt")
     # record for this CV fold
     cv_train_loss.append(train_loss[:])
     cv_val_loss.append(val_loss[:])
     cv_val_accuracy.append(val_accuracy[:])
 
-with open( './mlp/cv_train_loss_trajectory_start_frame.json', 'w') as f:
+with open( './cross_validation/cv_train_loss_trajectory_start_frame.json', 'w') as f:
    json.dump(cv_train_loss, f)
-with open( './mlp/cv_val_loss_trajectory_start_frame.json', 'w') as f:
+with open( './cross_validation/cv_val_loss_trajectory_start_frame.json', 'w') as f:
    json.dump(cv_val_loss, f)
-with open( './mlp/cv_val_accuracy_trajectory_start_frame.json', 'w') as f:
+with open( './cross_validation/cv_val_accuracy_trajectory_start_frame.json', 'w') as f:
    json.dump(cv_val_accuracy, f)
 
 
@@ -381,17 +381,17 @@ for i in range(6):
         val_accuracy.append(accuracy_val)
         # we can save the model after each epoch
         if epoch%save_interval == 0:
-            torch.save(model.state_dict(), f"./mlp/model_pt/mlp_trajectory_start_frame_lifespan_frame_{i}_fold_CV_{epoch}.pt")
+            torch.save(model.state_dict(), f"./model_pt/mlp_trajectory_start_frame_lifespan_frame_{i}_fold_CV_{epoch}.pt")
     # record for this CV fold
     cv_train_loss.append(train_loss[:])
     cv_val_loss.append(val_loss[:])
     cv_val_accuracy.append(val_accuracy[:])
 
-with open( './mlp/cv_train_loss_trajectory_start_frame_lifespan_frame.json', 'w') as f:
+with open( './cross_validation/cv_train_loss_trajectory_start_frame_lifespan_frame.json', 'w') as f:
    json.dump(cv_train_loss, f)
-with open( './mlp/cv_val_loss_trajectory_start_frame_lifespan_frame.json', 'w') as f:
+with open( './cross_validation/cv_val_loss_trajectory_start_frame_lifespan_frame.json', 'w') as f:
    json.dump(cv_val_loss, f)
-with open( './mlp/cv_val_accuracy_trajectory_start_frame_lifespan_frame.json', 'w') as f:
+with open( './cross_validation/cv_val_accuracy_trajectory_start_frame_lifespan_frame.json', 'w') as f:
    json.dump(cv_val_accuracy, f)
 
 
@@ -456,15 +456,15 @@ for i in range(6):
         val_accuracy.append(accuracy_val)
         # we can save the model after each epoch
         if epoch%save_interval == 0:
-            torch.save(model.state_dict(), f"./mlp/model_pt/mlp_trajectory_and_start_frame_and_lifespan_and_division_orientation_to_mother_cell_{i}_fold_CV_{epoch}.pt")
+            torch.save(model.state_dict(), f"./model_pt/mlp_trajectory_and_start_frame_and_lifespan_and_division_orientation_to_mother_cell_{i}_fold_CV_{epoch}.pt")
     # record for this CV fold
     cv_train_loss.append(train_loss[:])
     cv_val_loss.append(val_loss[:])
     cv_val_accuracy.append(val_accuracy[:])
 
-with open( './mlp/cv_train_loss_trajectory_and_start_frame_and_lifespan_and_division_orientation_to_mother_cell.json', 'w') as f:
+with open( './cross_validation/cv_train_loss_trajectory_and_start_frame_and_lifespan_and_division_orientation_to_mother_cell.json', 'w') as f:
    json.dump(cv_train_loss, f)
-with open( './mlp/cv_val_loss_trajectory_and_start_frame_and_lifespan_and_division_orientation_to_mother_cell.json', 'w') as f:
+with open( './cross_validation/cv_val_loss_trajectory_and_start_frame_and_lifespan_and_division_orientation_to_mother_cell.json', 'w') as f:
    json.dump(cv_val_loss, f)
-with open( './mlp/cv_val_accuracy_trajectory_and_start_frame_and_lifespan_and_division_orientation_to_mother_cell.json', 'w') as f:
+with open( './cross_validation/cv_val_accuracy_trajectory_and_start_frame_and_lifespan_and_division_orientation_to_mother_cell.json', 'w') as f:
    json.dump(cv_val_accuracy, f)

@@ -18,13 +18,13 @@ from sklearn.preprocessing import StandardScaler
 
 
 
-with open( './cells_of_interest.json', 'r') as f:
+with open( '../cells_of_interest.json', 'r') as f:
    cells_of_interest = json.load(f)
 
-with open('./cells_info.pickle', 'rb') as f:
+with open('../cells_info.pickle', 'rb') as f:
     cells_info = pickle.load(f)
 
-with open('./embryo_cells_info.pickle', 'rb') as f:
+with open('../embryo_cells_info.pickle', 'rb') as f:
     embryo_cells_info = pickle.load(f)
 
 embryos_for_test = ['WT-EMB05','WT-EMB12','WT-EMB19','WT-EMB26']
@@ -179,7 +179,7 @@ for i in range(6):
             test_accuracy.append(acc_test)
             print(f'Test_accuracy: {acc_test:.4f}')
         if epoch%save_interval == 0: # save test model
-            torch.save(model.state_dict(), f"./mlp/model_pt/mlp_traj_sf_lf_dm_{i}_fold_CV_{epoch}.pt")
+            torch.save(model.state_dict(), f"./model_pt/mlp_traj_sf_lf_dm_{i}_fold_CV_{epoch}.pt")
  
     # Final Test Accuracy
     acc_test, _ = _utilities.evaluate_mlp(model, test_dl, optimizer, device)
@@ -192,15 +192,15 @@ for i in range(6):
     cv_val_accuracy.append(val_accuracy[:])
     cv_test_accuracy.append(test_accuracy[:])
 
-with open( './mlp/mlp_traj_sf_lf_dm_cv_train_loss.json', 'w') as f:
+with open( './cross_validation/mlp_traj_sf_lf_dm_cv_train_loss.json', 'w') as f:
    json.dump(cv_train_loss, f)
-with open( './mlp/mlp_traj_sf_lf_dm_cv_val_loss.json', 'w') as f:
+with open( './cross_validation/mlp_traj_sf_lf_dm_cv_val_loss.json', 'w') as f:
    json.dump(cv_val_loss, f)
-with open( './mlp/mlp_traj_sf_lf_dm_cv_train_accuracy.json', 'w') as f:
+with open( './cross_validation/mlp_traj_sf_lf_dm_cv_train_accuracy.json', 'w') as f:
    json.dump(cv_train_accuracy, f)
-with open( './mlp/mlp_traj_sf_lf_dm_cv_val_accuracy.json', 'w') as f:
+with open( './cross_validation/mlp_traj_sf_lf_dm_cv_val_accuracy.json', 'w') as f:
    json.dump(cv_val_accuracy, f)
-with open( './mlp/mlp_traj_sf_lf_dm_cv_test_accuracy.json', 'w') as f:
+with open( './cross_validation/mlp_traj_sf_lf_dm_cv_test_accuracy.json', 'w') as f:
    json.dump(cv_test_accuracy, f)
 
 
@@ -257,15 +257,15 @@ for epoch in range(1,num_epochs+1):
         mlp_test_accuracy.append(acc_test)
         print(f'Test_accuracy: {acc_test:.4f}')
     if epoch%save_interval == 0: # save model test
-        torch.save(model.state_dict(), f"./mlp/model_pt/mlp_traj_sf_lf_dm_test_{epoch}.pt") 
+        torch.save(model.state_dict(), f"./model_pt/mlp_traj_sf_lf_dm_test_{epoch}.pt") 
 # Test
 acc_test, _ = _utilities.evaluate_mlp(model, test_dl, optimizer, device)
 # test_accuracy.append(acc_test)
 print(f'Final Test_accuracy: {acc_test:.4f}')
 
-with open( './mlp/mlp_traj_sf_lf_dm_test_train_loss.json', 'w') as f:
+with open( './test/mlp_traj_sf_lf_dm_test_train_loss.json', 'w') as f:
    json.dump(mlp_train_loss, f)
-with open( './mlp/mlp_traj_sf_lf_dm_test_train_accuracy.json', 'w') as f:
+with open( './test/mlp_traj_sf_lf_dm_test_train_accuracy.json', 'w') as f:
    json.dump(mlp_train_accuracy, f)
-with open( './mlp/mlp_traj_sf_lf_dm_test_test_accuracy.json', 'w') as f:
+with open( './test/mlp_traj_sf_lf_dm_test_test_accuracy.json', 'w') as f:
    json.dump(mlp_test_accuracy, f)
