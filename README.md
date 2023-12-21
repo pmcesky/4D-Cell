@@ -1,1 +1,1 @@
-# Predication of Cellular Identities from Trajectory and Cell Fate Information
+# Prediction of Cellular Identities from Trajectory and Cell Fate Information
